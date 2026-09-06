@@ -7,8 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "typecheck": "tsc --noEmit",
-    "shot": "node scripts/shot.mjs"
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "framer-motion": "^13.2.0",
