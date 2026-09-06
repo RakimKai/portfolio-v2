@@ -19,6 +19,9 @@ export function ProjectDeck({ project }: { project: Project }) {
   /* a screenshot opened over the whole screen: on a phone the inline one is
      too small to read, so tapping it is the way in */
   const [zoom, setZoom] = useState<Media | null>(null);
+  /* the arrows are a pointer affordance: a phone steps the deck by swiping,
+     so they are not rendered there at all */
+  const [wide, setWide] = useState(false);
   /* which way we are travelling, so the panels leave the side they came from */
   const [direction, setDirection] = useState(1);
   const region = useRef<HTMLElement>(null);
@@ -93,6 +96,14 @@ export function ProjectDeck({ project }: { project: Project }) {
   }, [go]);
 
   useEffect(() => {
+    const query = window.matchMedia("(min-width: 1024px)");
+    const sync = () => setWide(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+
+  useEffect(() => {
     if (!zoom) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setZoom(null);
@@ -106,17 +117,24 @@ export function ProjectDeck({ project }: { project: Project }) {
     };
   }, [zoom]);
 
-  /* a swipe steps it too, which is how a phone expects to be asked */
+  /* a swipe steps it, which is how a phone expects to be asked */
   const swipe = useRef({ x: 0, y: 0, live: false });
+  /* and a swipe that started on a screenshot must not also open it */
+  const swiped = useRef(false);
+
   const onPointerDown = (event: React.PointerEvent) => {
     swipe.current = { x: event.clientX, y: event.clientY, live: true };
+    swiped.current = false;
   };
   const onPointerUp = (event: React.PointerEvent) => {
     if (!swipe.current.live) return;
     swipe.current.live = false;
     const dx = event.clientX - swipe.current.x;
     const dy = event.clientY - swipe.current.y;
-    if (Math.abs(dx) > 56 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx < 0 ? 1 : -1);
+    if (Math.abs(dx) > 44 && Math.abs(dx) > Math.abs(dy) * 1.2) {
+      swiped.current = true;
+      go(dx < 0 ? 1 : -1);
+    }
   };
 
   const chapter = chapters[index];
@@ -136,7 +154,7 @@ export function ProjectDeck({ project }: { project: Project }) {
       aria-label={`${project.title}, panel by panel`}
       onPointerDown={onPointerDown}
       onPointerUp={onPointerUp}
-      className="section touch-pan-y"
+      className="section relative touch-pan-y"
     >
       {/* on a phone the panel reads text, screen, controls, top to bottom;
           on a wide screen the screen moves to its own column and the controls
@@ -201,7 +219,16 @@ export function ProjectDeck({ project }: { project: Project }) {
               transition={{ duration: reduced ? 0 : 0.5, ease: EASE }}
             >
               {shots.length ? (
-                shots.map((shot) => <Shot key={shot.alt} media={shot} onOpen={() => setZoom(shot)} />)
+                shots.map((shot) => (
+                  <Shot
+                    key={shot.alt}
+                    media={shot}
+                    onOpen={() => {
+                      if (swiped.current) return;
+                      setZoom(shot);
+                    }}
+                  />
+                ))
               ) : (
                 <Plate lines={chapter.plate ?? []} numbered={chapter.label !== "stack"} />
               )}
@@ -210,15 +237,23 @@ export function ProjectDeck({ project }: { project: Project }) {
         </div>
 
         <div className="lg:col-start-1 lg:row-start-2">
-          <Controls
+          <Progress
             index={index}
             total={chapters.length}
             labels={chapters.map((entry) => entry.title)}
-            onStep={go}
             onJump={jump}
           />
         </div>
       </div>
+
+      {/* the arrows hold the edges of the panel, where a thumb and a cursor
+          both already are; the rail underneath says how far along you are */}
+      {wide ? (
+        <>
+          <Arrow direction={-1} onClick={() => go(-1)} />
+          <Arrow direction={1} onClick={() => go(1)} />
+        </>
+      ) : null}
 
       <AnimatePresence>
         {zoom ? <Lightbox media={zoom} onClose={() => setZoom(null)} reduced={reduced} /> : null}
@@ -291,26 +326,19 @@ function Lightbox({
   );
 }
 
-function Controls({
+function Progress({
   index,
   total,
   labels,
-  onStep,
   onJump,
 }: {
   index: number;
   total: number;
   labels: string[];
-  onStep: (step: number) => void;
   onJump: (to: number) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
-      <div className="flex items-center gap-2">
-        <Arrow direction={-1} onClick={() => onStep(-1)} />
-        <Arrow direction={1} onClick={() => onStep(1)} />
-      </div>
-
+    <div className="flex items-center gap-x-4">
       {/* the segments say how much is left, and each one is a way in */}
       <div className="flex flex-1 items-center gap-1.5">
         {labels.map((label, position) => (
@@ -349,7 +377,15 @@ function Arrow({ direction, onClick }: { direction: 1 | -1; onClick: () => void 
       type="button"
       onClick={onClick}
       aria-label={direction === 1 ? "Next panel" : "Previous panel"}
-      className="group grid h-12 w-12 place-items-center rounded-full border border-[var(--rule)] bg-transparent p-0 text-[var(--ink)] transition-colors duration-500 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+      className={[
+        "group absolute top-1/2 z-20 grid h-12 w-12 -translate-y-1/2 place-items-center rounded-full",
+        "border border-[var(--rule)] bg-[var(--paper)] p-0 text-[var(--ink)]",
+        "transition-colors duration-500 hover:border-[var(--accent)] hover:text-[var(--accent)]",
+        "min-[1900px]:h-14 min-[1900px]:w-14",
+        direction === 1
+          ? "right-[clamp(8px,1.6vw,44px)]"
+          : "left-[clamp(8px,1.6vw,44px)]",
+      ].join(" ")}
     >
       <span
         aria-hidden="true"

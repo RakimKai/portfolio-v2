@@ -3,8 +3,12 @@
 import { useCallback, useEffect, useRef } from "react";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 import { useGround } from "@/lib/useGround";
+import { useScrolled } from "@/lib/useScrolled";
+import { useIntroDone } from "@/lib/intro";
 
 const REST = 72;
+/** Where the rope sits once the page has left the top: reeled into the bar. */
+const REELED = 4;
 const MAX = 196;
 const THRESHOLD = 44;
 const STIFFNESS = 0.14;
@@ -24,13 +28,20 @@ export function PullCord({
 }) {
   const { toggle } = useGround();
   const reduced = useReducedMotion();
+  /* off the top of the page the rope is in the way of whatever you are
+     reading, so it winds itself up into the bar and waits there */
+  const scrolled = useScrolled();
+  const ready = useIntroDone();
 
   const rope = useRef<SVGPathElement>(null);
   const twist = useRef<SVGPathElement>(null);
   const ring = useRef<SVGCircleElement>(null);
   const hint = useRef<SVGTextElement>(null);
 
-  const state = useRef({ len: REST, vel: 0, sway: 0, swayVel: 0, dragging: false, raf: 0 });
+  /* it starts wound up and drops in once the page is there */
+  const state = useRef({ len: REELED, vel: 0, sway: 0, swayVel: 0, dragging: false, raf: 0 });
+  /* the length the spring is pulling towards: hanging, or reeled in */
+  const rest = useRef(REST);
 
   const draw = useCallback(() => {
     const s = state.current;
@@ -55,7 +66,7 @@ export function PullCord({
   /* one spring loop, defined inside the starter so it can call itself */
   const start = useCallback(() => {
     if (reduced) {
-      state.current.len = REST;
+      state.current.len = rest.current;
       state.current.sway = 0;
       draw();
       return;
@@ -65,15 +76,15 @@ export function PullCord({
     const step = () => {
       const s = state.current;
       s.raf = 0;
-      s.vel = (s.vel + (REST - s.len) * STIFFNESS) * DAMPING;
+      s.vel = (s.vel + (rest.current - s.len) * STIFFNESS) * DAMPING;
       s.len += s.vel;
       s.swayVel = (s.swayVel - s.sway * 0.12) * 0.9;
       s.sway += s.swayVel;
       draw();
-      if (Math.abs(s.vel) > 0.05 || Math.abs(s.len - REST) > 0.2 || Math.abs(s.sway) > 0.2) {
+      if (Math.abs(s.vel) > 0.05 || Math.abs(s.len - rest.current) > 0.2 || Math.abs(s.sway) > 0.2) {
         s.raf = requestAnimationFrame(step);
       } else {
-        s.len = REST;
+        s.len = rest.current;
         s.sway = 0;
         s.vel = 0;
         s.swayVel = 0;
@@ -88,6 +99,34 @@ export function PullCord({
     draw();
     return stop;
   }, [draw, stop]);
+
+  const dropped = useRef(false);
+
+  /* the spring does the travelling in both directions, so coming back to the
+     top drops the rope with the same overshoot a pull gives it */
+  useEffect(() => {
+    rest.current = scrolled ? REELED : REST;
+    /* before the first drop the timer below owns the rope */
+    if (state.current.dragging || !ready || !dropped.current) return;
+    start();
+  }, [scrolled, start, ready]);
+
+  /* the first drop: the rope unwinds once the cat has carried the curtain off
+     that corner, and the spring gives it the same recoil as a pull */
+  useEffect(() => {
+    if (!ready || dropped.current) return;
+    if (reduced) {
+      dropped.current = true;
+      state.current.len = rest.current;
+      draw();
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      dropped.current = true;
+      start();
+    }, 1800);
+    return () => window.clearTimeout(timer);
+  }, [ready, reduced, draw, start]);
 
   const drag = useRef({ startY: 0, startX: 0, moved: false, blockClick: false });
 
@@ -107,7 +146,7 @@ export function PullCord({
       const dy = e.clientY - drag.current.startY;
       const dx = e.clientX - drag.current.startX;
       if (Math.abs(dy) > 4 || Math.abs(dx) > 4) drag.current.moved = true;
-      s.len = Math.max(REST, Math.min(REST + dy, MAX));
+      s.len = Math.max(rest.current, Math.min(rest.current + dy, MAX));
       s.sway = Math.max(-22, Math.min(dx * 0.36, 22));
       if (hint.current) hint.current.textContent = s.len - REST > THRESHOLD ? "let go" : "pull me";
       draw();
@@ -119,7 +158,7 @@ export function PullCord({
       window.removeEventListener("pointercancel", onUp);
       if (!s.dragging) return;
       s.dragging = false;
-      const pulled = s.len - REST;
+      const pulled = s.len - rest.current;
       if (drag.current.moved) drag.current.blockClick = true;
       if (hint.current) hint.current.textContent = "pull me";
       if (pulled > THRESHOLD) {
@@ -161,13 +200,25 @@ export function PullCord({
       onPointerDown={onPointerDown}
       onClick={onClick}
       className={[
-        "group z-[31] block h-[330px] w-[72px] cursor-grab border-0 bg-transparent p-0 active:cursor-grabbing",
+        /* the hit box stops just past the ring at rest: it used to run 330px
+           down the page and swallow every swipe that began on that side.
+           A drag is carried by window listeners, so it needs no more room. */
+        "group z-[31] block h-[104px] w-[64px] cursor-grab border-0 bg-transparent p-0 active:cursor-grabbing",
+        "transition-opacity duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+        scrolled ? "pointer-events-none opacity-0" : "opacity-100",
         mode === "fixed" ? "fixed top-0" : "absolute top-full",
         /* clear of the menu button on a phone, back in the gutter above it */
         "right-[calc(var(--gut)+26px)] md:right-[calc(var(--gut)-14px)] touch-none",
       ].join(" ")}
     >
-      <svg viewBox="0 0 72 330" className="block h-[330px] w-[72px] overflow-visible" aria-hidden="true" focusable="false">
+      {/* the drawing hangs past the button, so it must not be hit-testable:
+          its box used to swallow every touch that started on that side */}
+      <svg
+        viewBox="0 0 72 330"
+        className="pointer-events-none block h-[330px] w-[72px] overflow-visible"
+        aria-hidden="true"
+        focusable="false"
+      >
         <rect
           x="27" y="-3" width="18" height="6" rx="3"
           className="fill-[var(--rule)] transition-colors duration-500 group-hover:fill-[var(--accent)] group-focus-visible:fill-[var(--accent)]"
