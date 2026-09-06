@@ -16,6 +16,9 @@ const EASE = [0.16, 1, 0.3, 1] as const;
 export function ProjectDeck({ project }: { project: Project }) {
   const reduced = useReducedMotion();
   const [index, setIndex] = useState(0);
+  /* a screenshot opened over the whole screen: on a phone the inline one is
+     too small to read, so tapping it is the way in */
+  const [zoom, setZoom] = useState<Media | null>(null);
   /* which way we are travelling, so the panels leave the side they came from */
   const [direction, setDirection] = useState(1);
   const region = useRef<HTMLElement>(null);
@@ -89,6 +92,20 @@ export function ProjectDeck({ project }: { project: Project }) {
     };
   }, [go]);
 
+  useEffect(() => {
+    if (!zoom) return;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setZoom(null);
+    };
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = previous;
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [zoom]);
+
   /* a swipe steps it too, which is how a phone expects to be asked */
   const swipe = useRef({ x: 0, y: 0, live: false });
   const onPointerDown = (event: React.PointerEvent) => {
@@ -125,7 +142,7 @@ export function ProjectDeck({ project }: { project: Project }) {
           on a wide screen the screen moves to its own column and the controls
           settle under the text */}
       <div className="mx-auto grid w-full max-w-[var(--max)] items-center gap-[clamp(24px,4vw,80px)] px-[var(--gut)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:grid-rows-[1fr_auto]">
-        <div className="grid min-h-[40vh] content-center gap-4 lg:col-start-1 lg:row-start-1 lg:h-[min(46vh,560px)] lg:min-h-0">
+        <div className="grid min-h-[34vh] content-center gap-4 lg:col-start-1 lg:row-start-1 lg:h-[min(46vh,560px)] lg:min-h-0">
           <div className="grid gap-4">
             <p className="label">{chapter.label}</p>
 
@@ -173,7 +190,7 @@ export function ProjectDeck({ project }: { project: Project }) {
         {/* a band of a fixed height: panels differ in what they hold, and a
             column that resized around them shunted the page up and down on
             every step */}
-        <div className="flex h-[min(52vh,460px)] items-center justify-center lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:h-[min(62vh,760px)]">
+        <div className="flex h-[min(36vh,320px)] items-center justify-center lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:h-[min(62vh,760px)]">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
               key={chapter.title}
@@ -184,7 +201,7 @@ export function ProjectDeck({ project }: { project: Project }) {
               transition={{ duration: reduced ? 0 : 0.5, ease: EASE }}
             >
               {shots.length ? (
-                shots.map((shot) => <Shot key={shot.alt} media={shot} />)
+                shots.map((shot) => <Shot key={shot.alt} media={shot} onOpen={() => setZoom(shot)} />)
               ) : (
                 <Plate lines={chapter.plate ?? []} numbered={chapter.label !== "stack"} />
               )}
@@ -202,7 +219,75 @@ export function ProjectDeck({ project }: { project: Project }) {
           />
         </div>
       </div>
+
+      <AnimatePresence>
+        {zoom ? <Lightbox media={zoom} onClose={() => setZoom(null)} reduced={reduced} /> : null}
+      </AnimatePresence>
     </section>
+  );
+}
+
+/**
+ * A screenshot over the whole screen. A phone renders a desktop capture about
+ * three hundred pixels wide, which is a picture of a screen rather than a
+ * screen you can read; here it is laid out at a size worth reading and pans
+ * sideways if it is wider than the display.
+ */
+function Lightbox({
+  media,
+  onClose,
+  reduced,
+}: {
+  media: Media;
+  onClose: () => void;
+  reduced: boolean;
+}) {
+  return (
+    <motion.div
+      className="fixed inset-0 z-[70] flex flex-col bg-[color-mix(in_srgb,var(--paper)_94%,transparent)] backdrop-blur-[3px]"
+      initial={reduced ? false : { opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={reduced ? undefined : { opacity: 0 }}
+      transition={{ duration: 0.25 }}
+      role="dialog"
+      aria-modal="true"
+      aria-label={media.alt}
+    >
+      <div className="flex items-center justify-between gap-4 px-[var(--gut)] pt-5">
+        <p className="label max-w-[46ch] leading-[1.45]">{media.caption ?? media.alt}</p>
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close"
+          className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-[var(--rule)] bg-transparent p-0 font-display text-[1.05rem] leading-none text-[var(--ink)] transition-colors duration-300 hover:border-[var(--accent)] hover:text-[var(--accent)]"
+        >
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+
+      {/* wider than the display for a desktop capture, so it can be panned;
+          a phone screen is fitted to the height instead */}
+      <div className="flex flex-1 items-center overflow-auto overscroll-contain p-[var(--gut)]">
+        <motion.div
+          className="m-auto"
+          initial={reduced ? false : { scale: 0.97, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.3, ease: EASE }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={media.src}
+            alt={media.alt}
+            className={[
+              "block rounded-[6px] border border-[var(--rule)] bg-[var(--paper-deep)]",
+              media.portrait
+                ? "h-auto max-h-[82vh] w-auto max-w-full rounded-[22px]"
+                : "h-auto w-[max(100%,960px)] max-w-none",
+            ].join(" ")}
+          />
+        </motion.div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -279,7 +364,7 @@ function Arrow({ direction, onClick }: { direction: 1 | -1; onClick: () => void 
   );
 }
 
-function Shot({ media }: { media: Media }) {
+function Shot({ media, onOpen }: { media: Media; onOpen: () => void }) {
   return (
     <figure
       className={[
@@ -289,12 +374,21 @@ function Shot({ media }: { media: Media }) {
         media.portrait ? "w-auto" : "w-full",
       ].join(" ")}
     >
-      <div
+      <button
+        type="button"
+        onClick={onOpen}
+        aria-label={`Enlarge: ${media.alt}`}
         className={[
-          "overflow-hidden border border-[var(--rule)] bg-[var(--paper-deep)]",
+          "group relative block cursor-zoom-in overflow-hidden border border-[var(--rule)] bg-[var(--paper-deep)] p-0 text-left",
           media.portrait ? "rounded-[20px] p-1.5" : "w-full p-2.5",
         ].join(" ")}
       >
+        <span
+          aria-hidden="true"
+          className="absolute bottom-3 right-3 z-10 grid h-7 w-7 place-items-center rounded-full border border-[var(--rule)] bg-[var(--paper)] font-display text-[0.75rem] leading-none text-[var(--ink)] transition-colors duration-300 group-hover:border-[var(--accent)] group-hover:text-[var(--accent)]"
+        >
+          ⤢
+        </span>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={media.src}
@@ -302,11 +396,11 @@ function Shot({ media }: { media: Media }) {
           className={[
             /* a cap in pixels as well as in vh: on a very tall display the
              screenshot would otherwise be scaled past its own resolution */
-          "block h-auto max-h-[min(38vh,420px)] object-contain lg:max-h-[min(50vh,660px)]",
+          "block h-auto max-h-[min(26vh,240px)] object-contain lg:max-h-[min(50vh,660px)]",
             media.portrait ? "w-auto rounded-[15px]" : "w-full",
           ].join(" ")}
         />
-      </div>
+      </button>
       {media.caption ? (
         <figcaption className="label max-w-[30ch] leading-[1.45]">{media.caption}</figcaption>
       ) : null}
