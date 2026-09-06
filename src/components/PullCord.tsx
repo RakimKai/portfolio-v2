@@ -7,29 +7,19 @@ import { useScrolled } from "@/lib/useScrolled";
 import { useIntroDone } from "@/lib/intro";
 
 const REST = 72;
-/** Where the rope sits once the page has left the top: reeled into the bar. */
 const REELED = 4;
 const MAX = 196;
 const THRESHOLD = 44;
 const STIFFNESS = 0.14;
 const DAMPING = 0.86;
 
-/**
- * A rope hanging off the header. Pull it down past the threshold and let go
- * to flip the ground; a click only tugs it, so the gesture stays the point.
- * The rope is drawn every frame from a small spring, which is what makes it
- * recoil past its resting length and settle instead of easing on a fixed path.
- */
 export function PullCord({
   mode = "attached",
 }: {
-  /** "attached" hangs it off the header; "fixed" pins it to the top of the viewport. */
   mode?: "attached" | "fixed";
 }) {
   const { toggle } = useGround();
   const reduced = useReducedMotion();
-  /* off the top of the page the rope is in the way of whatever you are
-     reading, so it winds itself up into the bar and waits there */
   const scrolled = useScrolled();
   const ready = useIntroDone();
 
@@ -38,15 +28,13 @@ export function PullCord({
   const ring = useRef<SVGCircleElement>(null);
   const hint = useRef<SVGTextElement>(null);
 
-  /* it starts wound up and drops in once the page is there */
   const state = useRef({ len: REELED, vel: 0, sway: 0, swayVel: 0, dragging: false, raf: 0 });
-  /* the length the spring is pulling towards: hanging, or reeled in */
   const rest = useRef(REST);
 
   const draw = useCallback(() => {
     const s = state.current;
     const endX = 36 + s.sway;
-    const slack = Math.max(0, 52 - (s.len - REST) * 0.42); /* it straightens as it is pulled */
+    const slack = Math.max(0, 52 - (s.len - REST) * 0.42);
     const d = `M36 0 Q${(36 + s.sway * 0.42).toFixed(2)} ${(s.len * 0.52 + slack * 0.2).toFixed(2)} ${endX.toFixed(2)} ${s.len.toFixed(2)}`;
     rope.current?.setAttribute("d", d);
     twist.current?.setAttribute("d", d);
@@ -63,7 +51,6 @@ export function PullCord({
     }
   }, []);
 
-  /* one spring loop, defined inside the starter so it can call itself */
   const start = useCallback(() => {
     if (reduced) {
       state.current.len = rest.current;
@@ -102,17 +89,12 @@ export function PullCord({
 
   const dropped = useRef(false);
 
-  /* the spring does the travelling in both directions, so coming back to the
-     top drops the rope with the same overshoot a pull gives it */
   useEffect(() => {
     rest.current = scrolled ? REELED : REST;
-    /* before the first drop the timer below owns the rope */
     if (state.current.dragging || !ready || !dropped.current) return;
     start();
   }, [scrolled, start, ready]);
 
-  /* the first drop: the rope unwinds once the cat has carried the curtain off
-     that corner, and the spring gives it the same recoil as a pull */
   useEffect(() => {
     if (!ready || dropped.current) return;
     if (reduced) {
@@ -124,7 +106,7 @@ export function PullCord({
     const timer = window.setTimeout(() => {
       dropped.current = true;
       start();
-    }, 1800);
+    }, 2800);
     return () => window.clearTimeout(timer);
   }, [ready, reduced, draw, start]);
 
@@ -140,7 +122,6 @@ export function PullCord({
     drag.current = { startY: event.clientY, startX: event.clientX, moved: false, blockClick: false };
     if (hint.current) hint.current.textContent = "pull me";
 
-    /* listen on the window so releasing anywhere ends the drag */
     const onMove = (e: PointerEvent) => {
       if (!s.dragging) return;
       const dy = e.clientY - drag.current.startY;
@@ -163,7 +144,7 @@ export function PullCord({
       if (hint.current) hint.current.textContent = "pull me";
       if (pulled > THRESHOLD) {
         toggle();
-        s.vel = -Math.min(pulled * 0.09, 7); /* just enough to read as a spring */
+        s.vel = -Math.min(pulled * 0.09, 7);
       } else {
         s.vel = 0;
       }
@@ -182,11 +163,10 @@ export function PullCord({
     }
     stop();
     if (event.detail === 0) {
-      /* detail 0 means keyboard, which has no pull gesture available */
       toggle();
       state.current.vel = 10;
     } else {
-      state.current.vel = 5; /* a mouse click only tugs it */
+      state.current.vel = 5;
     }
     start();
   };
@@ -200,19 +180,13 @@ export function PullCord({
       onPointerDown={onPointerDown}
       onClick={onClick}
       className={[
-        /* the hit box stops just past the ring at rest: it used to run 330px
-           down the page and swallow every swipe that began on that side.
-           A drag is carried by window listeners, so it needs no more room. */
         "group z-[31] block h-[104px] w-[64px] cursor-grab border-0 bg-transparent p-0 active:cursor-grabbing",
         "transition-opacity duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
         scrolled ? "pointer-events-none opacity-0" : "opacity-100",
         mode === "fixed" ? "fixed top-0" : "absolute top-full",
-        /* clear of the menu button on a phone, back in the gutter above it */
         "right-[calc(var(--gut)+26px)] md:right-[calc(var(--gut)-14px)] touch-none",
       ].join(" ")}
     >
-      {/* the drawing hangs past the button, so it must not be hit-testable:
-          its box used to swallow every touch that started on that side */}
       <svg
         viewBox="0 0 72 330"
         className="pointer-events-none block h-[330px] w-[72px] overflow-visible"

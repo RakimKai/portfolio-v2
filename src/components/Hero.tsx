@@ -8,11 +8,6 @@ import { useIntroDone } from "@/lib/intro";
 const [firstName, ...restOfName] = meta.name.split(" ");
 const lines = [firstName.toLowerCase(), restOfName.join(" ").toLowerCase()];
 
-/**
- * The name takes the screen, set in two masked lines with the second one
- * stepped in. Under a full-width rule sit the three things worth knowing at a
- * glance: what he is, where he is, and when this was written.
- */
 export function Hero() {
   const reduced = useReducedMotion();
   const ready = useIntroDone();
@@ -34,8 +29,6 @@ export function Hero() {
               key={text}
               className={[
                 "block overflow-hidden pb-[0.05em]",
-                /* the surname steps in by a hair, enough to break the flush
-                   left edge without reading as an indent */
                 index ? "pl-[1.5%]" : "",
               ].join(" ")}
             >
@@ -55,12 +48,8 @@ export function Hero() {
           className="mt-[clamp(28px,6vh,72px)] grid grid-cols-[1fr_auto] items-baseline gap-x-6 gap-y-[clamp(16px,3vw,40px)] border-t border-[var(--rule)] pt-[clamp(16px,2.5vw,24px)] md:grid-cols-[minmax(0,1fr)_auto_auto] md:gap-x-[clamp(32px,6vw,96px)]"
           initial={reduced ? false : { opacity: 0, y: 18 }}
           animate={ready || reduced ? { opacity: 1, y: 0 } : { opacity: 0, y: 18 }}
-          /* held back until the cat has carried the curtain past this corner,
-             so the line is not uncovered already written */
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1], delay: reduced ? 0 : 1.5 }}
         >
-          {/* on a phone the sentence takes its own line and the two facts
-              share the one under it */}
           <p className="col-span-2 max-w-[34ch] text-[length:var(--lead)] font-light leading-[1.25] md:col-span-1">
             {meta.intro}
           </p>

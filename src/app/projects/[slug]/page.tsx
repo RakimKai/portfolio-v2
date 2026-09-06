@@ -31,7 +31,6 @@ export default async function ProjectPage({ params }: Params) {
   if (index === -1) notFound();
 
   const project = projects[index];
-  /* the list wraps in both directions, so there is always somewhere to go */
   const next = projects[(index + 1) % projects.length];
   const previous = projects[(index - 1 + projects.length) % projects.length];
 

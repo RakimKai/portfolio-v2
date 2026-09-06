@@ -18,11 +18,6 @@ const ScrollContext = createContext<ScrollTo>(() => {});
 
 export const useSmoothScroll = () => useContext(ScrollContext);
 
-/**
- * Lenis drives the whole page. Anchor jumps run through it too, so a nav
- * click travels on the same curve as a wheel gesture instead of snapping.
- * With reduced motion the whole thing is skipped and jumps are instant.
- */
 export function SmoothScroll({ children }: { children: ReactNode }) {
   const lenis = useRef<Lenis | null>(null);
   const reduced = useReducedMotion();
@@ -30,14 +25,11 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (reduced) return;
 
-    /* lerp rather than duration: each wheel tick still lands where the OS
-       intended, it just catches up over a few frames. Duration-based easing is
-       what makes smooth-scroll libraries feel floaty and detached. */
     const instance = new Lenis({
       lerp: 0.12,
       wheelMultiplier: 1,
       smoothWheel: true,
-      syncTouch: false, /* phones keep their own native scrolling */
+      syncTouch: false,
     });
     lenis.current = instance;
 
@@ -55,12 +47,6 @@ export function SmoothScroll({ children }: { children: ReactNode }) {
     };
   }, [reduced]);
 
-  /**
-   * Lenis carries its own idea of where the page is, so the router's own jump
-   * to the top on a navigation left it convinced we were still halfway down
-   * a page that no longer exists — a new case study opened mid-way through.
-   * Anything with a hash is left alone: that jump belongs to the anchor.
-   */
   const pathname = usePathname();
   useEffect(() => {
     if (window.location.hash) return;

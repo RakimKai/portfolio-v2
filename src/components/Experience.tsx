@@ -6,11 +6,6 @@ import { experience } from "@/content/site";
 import { CountUp } from "./CountUp";
 import { Reveal, SectionRule } from "./Reveal";
 
-/**
- * Not a timeline and not a carousel: each role pins to the top and the next
- * one rides up over it. The role leaving recedes slightly, so the stack reads
- * as one job giving way to another.
- */
 export function Experience() {
   const panels = useRef<(HTMLElement | null)[]>([]);
   const reduced = useReducedMotion();
@@ -22,7 +17,6 @@ export function Experience() {
     const read = () => {
       frame = 0;
       const list = panels.current.filter(Boolean) as HTMLElement[];
-      /* the panels only stack from md up; below that they must be left alone */
       if (window.innerWidth < 768) {
         list.forEach((panel) => {
           panel.style.transform = "";
@@ -72,7 +66,6 @@ export function Experience() {
               className={[
                 "grid gap-[18px] bg-[var(--paper)] will-change-transform md:sticky md:top-16",
                 "pb-[clamp(40px,8vw,72px)]",
-                /* the first panel needs no rule — the section already has one */
                 index > 0
                   ? "mt-[clamp(32px,6vw,56px)] border-t border-[var(--rule)] pt-[clamp(24px,4vw,40px)]"
                   : "",

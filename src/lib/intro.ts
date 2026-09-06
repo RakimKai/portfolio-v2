@@ -2,11 +2,6 @@
 
 import { useSyncExternalStore } from "react";
 
-/**
- * Whether the boot screen has finished. The intro lives in the layout so it
- * plays on every page, and the hero waits on this rather than on a prop passed
- * down a tree it no longer shares.
- */
 let done = false;
 const listeners = new Set<() => void>();
 
@@ -22,7 +17,6 @@ function subscribe(listener: () => void) {
 }
 
 export function useIntroDone() {
-  /* false on the server and on the first client render, so the two agree */
   return useSyncExternalStore(
     subscribe,
     () => done,

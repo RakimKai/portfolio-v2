@@ -2,10 +2,6 @@
 
 import { useEffect, useState } from "react";
 
-/**
- * True once the page has left the top, with hysteresis so the header
- * cannot flicker when you hover the threshold.
- */
 export function useScrolled(enter = 64, exit = 20) {
   const [scrolled, setScrolled] = useState(false);
 

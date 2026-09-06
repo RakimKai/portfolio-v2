@@ -4,7 +4,6 @@ import { useEffect, useRef, useState } from "react";
 import { useInView } from "framer-motion";
 import { useReducedMotion } from "@/lib/useReducedMotion";
 
-/** Ticks up to `value` once, when it first comes into view. */
 export function CountUp({ value }: { value: number }) {
   const ref = useRef<HTMLSpanElement>(null);
   const inView = useInView(ref, { once: true, margin: "0px 0px -20% 0px" });

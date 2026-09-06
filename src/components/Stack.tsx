@@ -1,7 +1,6 @@
 import { stackGroups } from "@/content/site";
 import { Reveal, SectionRule } from "./Reveal";
 
-/** Four columns that say where each thing sits, rather than one flat list. */
 export function Stack() {
   return (
     <section id="stack" className="section">

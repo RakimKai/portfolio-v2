@@ -6,15 +6,10 @@ import type { ElementType, ReactNode } from "react";
 
 type RevealProps = {
   children: ReactNode;
-  /** Stagger step, in tenths of a second. */
   delay?: number;
   as?: ElementType;
 } & Omit<HTMLMotionProps<"div">, "children">;
 
-/**
- * One slide-and-fade from the left, once — the same direction the cat walks in.
- * `viewport.once` means nothing replays when you scroll back over it.
- */
 export function Reveal({ children, delay = 0, as = "div", className, ...rest }: RevealProps) {
   const reduced = useReducedMotion();
   const Component = motion[as as "div"] ?? motion.div;
@@ -38,7 +33,6 @@ export function Reveal({ children, delay = 0, as = "div", className, ...rest }: 
   );
 }
 
-/** The hairline above a section, drawn left to right as it arrives. */
 export function SectionRule() {
   const reduced = useReducedMotion();
   return (

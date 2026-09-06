@@ -1,8 +1,3 @@
-/**
- * Every word on the site lives here.
- * Edit this file and nothing else to change content.
- */
-
 export type Meta = {
   name: string;
   role: string;
@@ -10,13 +5,9 @@ export type Meta = {
   email: string;
   github: string;
   githubUrl: string;
-  /** Optional. Add a number and a phone row appears in the footer. */
   phone?: string;
-  /** Shown under the name in the hero. Keep it short. */
   intro: string;
-  /** Sits at the far right of the hero rule. */
   year: string;
-  /** Used for <title>, OG tags and the OG image. */
   siteUrl: string;
   description: string;
 };
@@ -24,67 +15,42 @@ export type Meta = {
 export type Role = {
   company: string;
   title: string;
-  /** e.g. "aug 2024 — present" */
   period: string;
-  /** Optional second line under the title, e.g. a promotion. */
   note?: string;
   body: string;
-  /** Optional pulled-out number. Counts up when it scrolls into view. */
   figure?: { value: number; caption: string };
 };
 
 export type Media = {
-  /** Drop a file in /public/projects and point at it, e.g. "/projects/gdje-ides/01.jpg".
-   *  Leave it out and the page renders a marked placeholder frame instead. */
   src?: string;
   alt: string;
   caption?: string;
-  /** A phone screen. Portrait shots are laid out as a row of handsets rather
-   *  than blown up to the full column width. */
   portrait?: boolean;
 };
 
-/** One panel of a deck-style detail page: text on the left, a screen or a
- *  typographic plate on the right. */
 export type DeckChapter = {
-  /** Rail label, e.g. "overview" or "decision 01". */
   label: string;
   title: string;
   body: string[];
-  /** Indices into the project's `media`. */
   shots?: number[];
-  /** Shown instead, when the panel has no screen to show. */
   plate?: string[];
 };
 
 export type Project = {
-  /** Index shown as an outlined numeral. Keep them in order. */
   n: string;
-  /** URL segment: /projects/<slug> */
   slug: string;
   title: string;
   year: string;
-  /** One line. This is all the card shows. */
   summary: string;
-  /** What you did on it. */
   role: string;
   stack: string;
-  /** Repository or live link. Omit for client work. */
   link?: string;
-  /** Shown instead of a link when there is no public repo. */
   linkNote?: string;
-  /** Wider panel in the carousel. Use for the strongest entry. */
   wide?: boolean;
-  /** The detail page itself: the panels you step through with the arrows.
-   *  A closing "built with" panel is added for you. */
   deck: DeckChapter[];
-  /** Vertical offset in px, breaks the carousel out of a straight line. */
   offset: number;
 
-  /* ---- the detail page ---- */
-  /** Opening sentence, set large. */
   lead: string;
-  /** Screens, diagrams, anything. Placeholders render until you add files. */
   media: Media[];
 };
 
@@ -95,7 +61,6 @@ export type Education = {
   note: string;
 };
 
-/** One run-on sentence. `name` is set solid, `text` is the grey connective. */
 export type StackPart = { name?: string; text?: string };
 
 export const meta: Meta = {
@@ -455,7 +420,6 @@ export const stack: StackPart[] = [
   { name: "Git." },
 ];
 
-/** The /stack section. */
 export const stackGroups = [
   { label: "backend", items: ["Java", "Spring / Spring Boot", "C#", ".NET"] },
   { label: "frontend", items: ["TypeScript", "JavaScript", "React", "Angular"] },

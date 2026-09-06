@@ -9,10 +9,6 @@ import { meta, nav, projects } from "@/content/site";
 import { PullCord } from "./PullCord";
 import { useSmoothScroll } from "./SmoothScroll";
 
-/**
- * A bar, and it stays a bar. Only the cord reacts to scrolling.
- * Away from the home page the anchors become real links back to it.
- */
 export function Nav() {
   const scrollTo = useSmoothScroll();
   const pathname = usePathname();
@@ -41,8 +37,6 @@ export function Nav() {
           </span>
         </Link>
 
-        {/* the inline bar is for screens with room for it; a phone gets the
-            drawer underneath instead */}
         <ul className="m-0 hidden list-none flex-wrap items-center justify-end gap-x-3 gap-y-2 p-0 sm:gap-x-4 sm:gap-y-2.5 md:flex min-[1900px]:gap-x-7">
           {nav.map((item) =>
             item.href === "#projects" ? (
@@ -71,10 +65,6 @@ export function Nav() {
   );
 }
 
-/**
- * The phone navigation: a button at the right edge, and a panel that comes in
- * from the same side, holding the four sections and nothing else.
- */
 function MobileMenu({
   atHome,
   scrollTo,
@@ -91,7 +81,6 @@ function MobileMenu({
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
-    /* the page must not scroll behind the panel */
     const previous = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     document.addEventListener("keydown", onKey);
@@ -105,7 +94,6 @@ function MobileMenu({
   const goTo = (href: string) => {
     setOpen(false);
     if (!atHome) return;
-    /* let the panel start leaving before the page travels */
     window.setTimeout(() => scrollTo(href), reduced ? 0 : 220);
   };
 
@@ -192,7 +180,6 @@ function MobileMenu({
   );
 }
 
-/** /projects opens on hover or focus and lists the four case studies. */
 function ProjectsMenu({
   atHome,
   scrollTo,
@@ -209,7 +196,6 @@ function ProjectsMenu({
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") setOpen(false);
     };
-    /* a tap anywhere else closes it, which is the only way out on a phone */
     const onPointerDown = (event: PointerEvent) => {
       if (!item.current?.contains(event.target as Node)) setOpen(false);
     };

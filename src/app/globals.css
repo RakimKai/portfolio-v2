@@ -1,14 +1,9 @@
 @import "tailwindcss";
 
-/* ============================================================
-   Design tokens. The ground flips by setting data-ground="paper"
-   on <html>; every colour on the site resolves through these.
-   ============================================================ */
 :root {
   --ink: #ede9e1;
   --paper: #0f1012;
-  --accent: #72ada2; /* the green from the old portfolio */
-  --accent-deep: #4b8278;
+  --accent: #72ada2;  --accent-deep: #4b8278;
   --grey: #82838d;
   --rule: #2a2b31;
   --paper-deep: #15161a;
@@ -16,7 +11,6 @@
 
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
 
-  /* the hero name; capped so it stops growing before it stops fitting */
   --name: clamp(3.25rem, 17vw, 12rem);
   --d1: clamp(3.5rem, 16.5vw, 12.5rem);
   --d3: clamp(1.75rem, 6vw, 3.25rem);
@@ -32,8 +26,7 @@
 [data-ground="paper"] {
   --ink: #0f1012;
   --paper: #ede9e1;
-  --accent: #2f6e62; /* the same green, darkened to hold contrast on paper */
-  --accent-deep: #1d4c42;
+  --accent: #2f6e62;  --accent-deep: #1d4c42;
   --grey: #6e6f78;
   --rule: #c9c3b7;
   --paper-deep: #e4dfd5;
@@ -43,12 +36,6 @@
 @media (min-width: 600px) { :root { --gut: 40px; } }
 @media (min-width: 1000px) { :root { --gut: 56px; } }
 
-/* ------------------------------------------------------------------
-   Very large screens. Past about 1500px the type has hit every cap it
-   has and the column stops growing, so the page turns into a small
-   island in the middle of the display. The measure and the scale both
-   step up instead, and keep stepping to the widest monitors.
-   ------------------------------------------------------------------ */
 @media (min-width: 1500px) {
   :root {
     --gut: 64px;
@@ -117,7 +104,6 @@
     overflow-x: hidden;
   }
 
-  /* paper grain, sits above everything and catches no clicks */
   body::after {
     content: "";
     position: fixed;
@@ -143,9 +129,6 @@
   }
 }
 
-/* ============================================================
-   Shared pieces
-   ============================================================ */
 @layer components {
   .wrap {
     max-width: var(--max);
@@ -181,7 +164,6 @@
 
   .prose { display: grid; gap: 1.15em; max-width: 62ch; }
 
-  /* the hairline draws itself in as a section arrives */
   .section-rule {
     position: absolute;
     top: 0;
@@ -193,16 +175,11 @@
   }
   .has-anim .section { border-top-color: transparent; }
 
-  /* The hero sits low on a laptop, so the rule closes it near the fold.
-     On a phone, and on a very tall display, that leaves a screen of nothing
-     above the name, so there it centres instead. */
   .hero { justify-content: center; }
   @media (min-width: 1000px) and (max-height: 1099px) {
     .hero { justify-content: flex-end; }
   }
 
-  /* link with an underline that wipes in */
-  /* the rule grows in from the left edge on hover, and retreats the same way */
   .wipe-link {
     text-decoration: none;
     padding-bottom: 3px;
@@ -224,10 +201,6 @@
 }
 
 @layer components {
-  /* ============================================================
-     Header. A bar at the top; pulled to a left rail once you
-     scroll, on screens wide enough to spare the margin.
-     ============================================================ */
   .site-nav {
     background: var(--paper);
     border-color: var(--rule);
@@ -244,10 +217,6 @@
   }
 }
 
-/* ============================================================
-   Boot sequence. A PlayStation 1 start-up, with his name where
-   the licence line went and his initials where the mark went.
-   ============================================================ */
 @keyframes boot-fade {
   from { opacity: 0; }
   to   { opacity: 1; }
@@ -279,12 +248,8 @@
   animation: cat-tail 0.52s ease-in-out infinite;
 }
 
-/* The black is a curtain the cat drags off to the right: it walks along the
-   panel's own left edge, so the page appears behind it as it goes. */
 @keyframes boot-sweep {
   from { transform: translateX(0); }
-  /* past 100%, so the cat — which walks a body-length ahead of the edge —
-     carries on off the screen instead of stopping against it */
   to   { transform: translateX(136%); }
 }
 .boot-sweep { animation: boot-sweep 2.2s linear both; }

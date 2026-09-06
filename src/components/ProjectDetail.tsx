@@ -7,10 +7,6 @@ import type { Project } from "@/content/site";
 import { ProjectDeck } from "./ProjectDeck";
 import { Reveal } from "./Reveal";
 
-/**
- * A case study: the title and the one-line what-it-is, then the project itself
- * as a deck of panels, then the way on to the next one.
- */
 export function ProjectDetail({
   project,
   next,
@@ -26,8 +22,6 @@ export function ProjectDetail({
     <main>
       <header className="border-b border-[var(--rule)] pb-[clamp(36px,6vw,72px)] pt-[clamp(14px,2.5vh,24px)]">
         <div className="wrap">
-          {/* the panels want to be near the top, so the title sits close
-              behind the back link */}
           <Reveal as="p" className="label mb-[clamp(32px,6vh,64px)]">
             <Link href="/#projects" className="wipe-link">
               ← back to projects
@@ -65,11 +59,7 @@ export function ProjectDetail({
       <ProjectDeck project={project} />
 
       <section className="section">
-        {/* not .wrap: on a wide screen that splits into the rail-and-column
-            grid the rest of the page uses, and the pager wants the full width */}
         <div className="mx-auto grid max-w-[var(--max)] gap-[clamp(26px,4vw,44px)] px-[var(--gut)]">
-          {/* the way back through the list, kept quiet so it does not compete
-              with the doorway underneath it */}
           <div className="border-b border-[var(--rule)] pb-[clamp(20px,3vw,30px)]">
             <Link
               href={`/projects/${previous.slug}`}

@@ -71,7 +71,6 @@ export function Contact() {
   );
 }
 
-/** The email is the button. Click copies it; the hint sits on the right. */
 function CopyEmail({ email }: { email: string }) {
   const [state, setState] = useState<"idle" | "copied" | "manual">("idle");
   const timer = useRef<number>(0);
@@ -84,7 +83,7 @@ function CopyEmail({ email }: { email: string }) {
       await navigator.clipboard.writeText(email);
       ok = true;
     } catch {
-      ok = false; /* no clipboard permission — tell them to copy by hand */
+      ok = false;
     }
     setState(ok ? "copied" : "manual");
     window.clearTimeout(timer.current);

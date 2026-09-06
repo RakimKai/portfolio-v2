@@ -7,27 +7,14 @@ import type { DeckChapter, Media, Project } from "@/content/site";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-/**
- * The case study as a deck. One panel at a time — text on the left, the screen
- * it is about on the right — stepped with the arrows, the keyboard or a swipe.
- * Nothing is hidden behind a scroll gesture nobody is sure is working: the
- * controls are on the page, and the page itself barely moves.
- */
 export function ProjectDeck({ project }: { project: Project }) {
   const reduced = useReducedMotion();
   const [index, setIndex] = useState(0);
-  /* a screenshot opened over the whole screen: on a phone the inline one is
-     too small to read, so tapping it is the way in */
   const [zoom, setZoom] = useState<Media | null>(null);
-  /* the arrows are a pointer affordance: a phone steps the deck by swiping,
-     so they are not rendered there at all */
   const [wide, setWide] = useState(false);
-  /* which way we are travelling, so the panels leave the side they came from */
   const [direction, setDirection] = useState(1);
   const region = useRef<HTMLElement>(null);
 
-  /* the closing panel is the same on every project, so it is built here
-     rather than repeated in the content file */
   const chapters: DeckChapter[] = useMemo(
     () => [
       ...(project.deck ?? []),
@@ -41,8 +28,6 @@ export function ProjectDeck({ project }: { project: Project }) {
     [project.deck, project.stack, project.summary],
   );
 
-  /* the deck loops: stepping past the last panel comes back to the first,
-     so the arrows are never dead ends */
   const go = useCallback(
     (step: number) => {
       setIndex((current) => {
@@ -60,7 +45,6 @@ export function ProjectDeck({ project }: { project: Project }) {
     });
   }, []);
 
-  /* the arrow keys work whenever the deck is the thing you are looking at */
   useEffect(() => {
     const element = region.current;
     if (!element) return;
@@ -117,9 +101,7 @@ export function ProjectDeck({ project }: { project: Project }) {
     };
   }, [zoom]);
 
-  /* a swipe steps it, which is how a phone expects to be asked */
   const swipe = useRef({ x: 0, y: 0, live: false });
-  /* and a swipe that started on a screenshot must not also open it */
   const swiped = useRef(false);
 
   const onPointerDown = (event: React.PointerEvent) => {
@@ -156,9 +138,6 @@ export function ProjectDeck({ project }: { project: Project }) {
       onPointerUp={onPointerUp}
       className="section relative touch-pan-y"
     >
-      {/* on a phone the panel reads text, screen, controls, top to bottom;
-          on a wide screen the screen moves to its own column and the controls
-          settle under the text */}
       <div className="mx-auto grid w-full max-w-[var(--max)] items-center gap-[clamp(24px,4vw,80px)] px-[var(--gut)] lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:grid-rows-[1fr_auto]">
         <div className="grid min-h-[34vh] content-center gap-4 lg:col-start-1 lg:row-start-1 lg:h-[min(46vh,560px)] lg:min-h-0">
           <div className="grid gap-4">
@@ -182,7 +161,6 @@ export function ProjectDeck({ project }: { project: Project }) {
                   </p>
                 ))}
 
-                {/* the closing panel is also where the repository lives */}
                 {index === chapters.length - 1 ? (
                   project.link ? (
                     <a
@@ -205,9 +183,6 @@ export function ProjectDeck({ project }: { project: Project }) {
 
         </div>
 
-        {/* a band of a fixed height: panels differ in what they hold, and a
-            column that resized around them shunted the page up and down on
-            every step */}
         <div className="flex h-[min(36vh,320px)] items-center justify-center lg:col-start-2 lg:row-span-2 lg:row-start-1 lg:h-[min(62vh,760px)]">
           <AnimatePresence mode="wait" initial={false}>
             <motion.div
@@ -246,8 +221,6 @@ export function ProjectDeck({ project }: { project: Project }) {
         </div>
       </div>
 
-      {/* the arrows hold the edges of the panel, where a thumb and a cursor
-          both already are; the rail underneath says how far along you are */}
       {wide ? (
         <>
           <Arrow direction={-1} onClick={() => go(-1)} />
@@ -262,12 +235,6 @@ export function ProjectDeck({ project }: { project: Project }) {
   );
 }
 
-/**
- * A screenshot over the whole screen. A phone renders a desktop capture about
- * three hundred pixels wide, which is a picture of a screen rather than a
- * screen you can read; here it is laid out at a size worth reading and pans
- * sideways if it is wider than the display.
- */
 function Lightbox({
   media,
   onClose,
@@ -300,8 +267,6 @@ function Lightbox({
         </button>
       </div>
 
-      {/* wider than the display for a desktop capture, so it can be panned;
-          a phone screen is fitted to the height instead */}
       <div className="flex flex-1 items-center overflow-auto overscroll-contain p-[var(--gut)]">
         <motion.div
           className="m-auto"
@@ -309,7 +274,6 @@ function Lightbox({
           animate={{ scale: 1, opacity: 1 }}
           transition={{ duration: 0.3, ease: EASE }}
         >
-          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={media.src}
             alt={media.alt}
@@ -339,7 +303,6 @@ function Progress({
 }) {
   return (
     <div className="flex items-center gap-x-4">
-      {/* the segments say how much is left, and each one is a way in */}
       <div className="flex flex-1 items-center gap-1.5">
         {labels.map((label, position) => (
           <button
@@ -404,10 +367,8 @@ function Shot({ media, onOpen }: { media: Media; onOpen: () => void }) {
   return (
     <figure
       className={[
-        /* justify-items-start, or the frame stretches to whatever width the
-           caption wants and the screen floats in a half-empty box */
-        "m-0 grid max-h-full justify-items-start gap-3",
-        media.portrait ? "w-auto" : "w-full",
+        "m-0 grid max-h-full gap-3",
+        media.portrait ? "w-auto justify-items-center" : "w-full justify-items-start",
       ].join(" ")}
     >
       <button
@@ -425,26 +386,29 @@ function Shot({ media, onOpen }: { media: Media; onOpen: () => void }) {
         >
           ⤢
         </span>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={media.src}
           alt={media.alt}
           className={[
-            /* a cap in pixels as well as in vh: on a very tall display the
-             screenshot would otherwise be scaled past its own resolution */
           "block h-auto max-h-[min(26vh,240px)] object-contain lg:max-h-[min(50vh,660px)]",
             media.portrait ? "w-auto rounded-[15px]" : "w-full",
           ].join(" ")}
         />
       </button>
       {media.caption ? (
-        <figcaption className="label max-w-[30ch] leading-[1.45]">{media.caption}</figcaption>
+        <figcaption
+          className={[
+            "label max-w-[30ch] leading-[1.45]",
+            media.portrait ? "text-center" : "",
+          ].join(" ")}
+        >
+          {media.caption}
+        </figcaption>
       ) : null}
     </figure>
   );
 }
 
-/** What stands in for a screen when the panel is about something you cannot photograph. */
 function Plate({ lines, numbered }: { lines: string[]; numbered: boolean }) {
   return (
     <div className="grid max-h-full w-full max-w-[36ch] gap-0 overflow-y-auto border border-[var(--rule)] bg-[var(--paper-deep)] px-[clamp(24px,3vw,44px)] py-[clamp(8px,1.5vw,16px)]">
@@ -456,8 +420,6 @@ function Plate({ lines, numbered }: { lines: string[]; numbered: boolean }) {
             index ? "border-t border-[var(--rule)]" : "",
           ].join(" ")}
         >
-          {/* numbered only where the lines really are a sequence — a list of
-              technologies is not one */}
           <span aria-hidden="true" className="text-[length:var(--meta)] text-[var(--accent)]">
             {numbered ? String(index + 1).padStart(2, "0") : "·"}
           </span>

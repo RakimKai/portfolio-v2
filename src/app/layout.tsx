@@ -6,7 +6,6 @@ import { SmoothScroll } from "@/components/SmoothScroll";
 import { meta } from "@/content/site";
 import "./globals.css";
 
-/* Self-hosted by next/font: no network request to Google, no layout shift. */
 const bricolage = Bricolage_Grotesque({
   subsets: ["latin"],
   weight: ["500", "700"],
@@ -48,13 +47,10 @@ export const viewport: Viewport = {
   ],
 };
 
-/** Applies the remembered ground before first paint, so there is no flash. */
 const groundScript = `try{if(localStorage.getItem("ground")==="paper"){document.documentElement.setAttribute("data-ground","paper")}}catch(e){}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    /* the ground script below writes data-ground before hydration, which is the
-       one attribute React is allowed to find already changed */
     <html
       lang="en"
       className={`${bricolage.variable} ${newsreader.variable}`}
