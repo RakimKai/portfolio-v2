@@ -1,0 +1,291 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Design tokens. The ground flips by setting data-ground="paper"
+   on <html>; every colour on the site resolves through these.
+   ============================================================ */
+:root {
+  --ink: #ede9e1;
+  --paper: #0f1012;
+  --accent: #72ada2; /* the green from the old portfolio */
+  --accent-deep: #4b8278;
+  --grey: #82838d;
+  --rule: #2a2b31;
+  --paper-deep: #15161a;
+  --grain: 0.06;
+
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* the hero name; capped so it stops growing before it stops fitting */
+  --name: clamp(3.25rem, 17vw, 12rem);
+  --d1: clamp(3.5rem, 16.5vw, 12.5rem);
+  --d3: clamp(1.75rem, 6vw, 3.25rem);
+  --d4: clamp(1.375rem, 4.4vw, 2.25rem);
+  --lead: clamp(1.15rem, 4.2vw, 1.75rem);
+  --body: clamp(1.0625rem, 3.6vw, 1.1875rem);
+  --meta: 0.8125rem;
+
+  --gut: 20px;
+  --max: 1280px;
+}
+
+[data-ground="paper"] {
+  --ink: #0f1012;
+  --paper: #ede9e1;
+  --accent: #2f6e62; /* the same green, darkened to hold contrast on paper */
+  --accent-deep: #1d4c42;
+  --grey: #6e6f78;
+  --rule: #c9c3b7;
+  --paper-deep: #e4dfd5;
+  --grain: 0.045;
+}
+
+@media (min-width: 600px) { :root { --gut: 40px; } }
+@media (min-width: 1000px) { :root { --gut: 56px; } }
+
+/* ------------------------------------------------------------------
+   Very large screens. Past about 1500px the type has hit every cap it
+   has and the column stops growing, so the page turns into a small
+   island in the middle of the display. The measure and the scale both
+   step up instead, and keep stepping to the widest monitors.
+   ------------------------------------------------------------------ */
+@media (min-width: 1500px) {
+  :root {
+    --gut: 64px;
+    --max: 1400px;
+    --d3: clamp(1.75rem, 6vw, 3.75rem);
+    --d4: clamp(1.375rem, 4.4vw, 2.5rem);
+    --lead: clamp(1.15rem, 4.2vw, 1.95rem);
+    --body: clamp(1.0625rem, 3.6vw, 1.3125rem);
+    --meta: 0.9375rem;
+  }
+}
+
+@media (min-width: 1900px) {
+  :root {
+    --gut: 80px;
+    --max: 1680px;
+    --name: clamp(3rem, 13vw, 14.5rem);
+    --d1: clamp(3.5rem, 16.5vw, 15rem);
+    --d3: clamp(1.75rem, 6vw, 4.25rem);
+    --d4: clamp(1.375rem, 4.4vw, 2.875rem);
+    --lead: clamp(1.15rem, 4.2vw, 2.25rem);
+    --body: clamp(1.0625rem, 3.6vw, 1.4375rem);
+    --meta: 1.125rem;
+  }
+}
+
+@media (min-width: 2400px) {
+  :root {
+    --gut: 96px;
+    --max: 2000px;
+    --name: clamp(3rem, 13vw, 17.5rem);
+    --d1: clamp(3.5rem, 16.5vw, 18rem);
+    --d3: clamp(1.75rem, 6vw, 5rem);
+    --d4: clamp(1.375rem, 4.4vw, 3.375rem);
+    --lead: clamp(1.15rem, 4.2vw, 2.625rem);
+    --body: clamp(1.0625rem, 3.6vw, 1.625rem);
+    --meta: 1.375rem;
+  }
+}
+
+@theme inline {
+  --color-ink: var(--ink);
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-accent: var(--accent);
+  --color-accent-deep: var(--accent-deep);
+  --color-grey: var(--grey);
+  --color-rule: var(--rule);
+  --font-display: var(--font-bricolage), "Helvetica Neue", Arial, sans-serif;
+  --font-text: var(--font-newsreader), Georgia, "Times New Roman", serif;
+}
+
+@layer base {
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: auto; }
+
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-newsreader), Georgia, "Times New Roman", serif;
+    font-size: var(--body);
+    line-height: 1.62;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+
+  /* paper grain, sits above everything and catches no clicks */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 9;
+    opacity: var(--grain);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  h1, h2, h3 {
+    font-family: var(--font-bricolage), "Helvetica Neue", Arial, sans-serif;
+    font-weight: 700;
+    margin: 0;
+    text-wrap: balance;
+  }
+  p { margin: 0; }
+  a { color: inherit; }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 4px;
+  }
+}
+
+/* ============================================================
+   Shared pieces
+   ============================================================ */
+@layer components {
+  .wrap {
+    max-width: var(--max);
+    margin-inline: auto;
+    padding-inline: var(--gut);
+  }
+
+  .label {
+    font-family: var(--font-bricolage), "Helvetica Neue", Arial, sans-serif;
+    font-size: var(--meta);
+    font-weight: 500;
+    letter-spacing: 0.07em;
+    color: var(--grey);
+    text-transform: lowercase;
+    line-height: 1.2;
+  }
+
+  .section {
+    padding-block: clamp(56px, 10vw, 120px);
+    border-top: 1px solid var(--rule);
+    position: relative;
+  }
+  .section > .wrap { display: grid; gap: clamp(24px, 4vw, 40px); }
+  @media (min-width: 1000px) {
+    .section > .wrap,
+    .rail-grid {
+      grid-template-columns: 12ch 1fr;
+      gap: 0 clamp(40px, 6vw, 96px);
+    }
+    .rail { grid-column: 1; position: sticky; top: 76px; align-self: start; }
+    .col { grid-column: 2; }
+  }
+
+  .prose { display: grid; gap: 1.15em; max-width: 62ch; }
+
+  /* the hairline draws itself in as a section arrives */
+  .section-rule {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--rule);
+    transform-origin: 0 50%;
+  }
+  .has-anim .section { border-top-color: transparent; }
+
+  /* The hero sits low on a laptop, so the rule closes it near the fold.
+     On a phone, and on a very tall display, that leaves a screen of nothing
+     above the name, so there it centres instead. */
+  .hero { justify-content: center; }
+  @media (min-width: 1000px) and (max-height: 1099px) {
+    .hero { justify-content: flex-end; }
+  }
+
+  /* link with an underline that wipes in */
+  /* the rule grows in from the left edge on hover, and retreats the same way */
+  .wipe-link {
+    text-decoration: none;
+    padding-bottom: 3px;
+    background-image: linear-gradient(var(--accent), var(--accent));
+    background-repeat: no-repeat;
+    background-position: left bottom;
+    background-size: 0 1px;
+    transition: color 0.3s var(--ease), background-size 0.45s var(--ease);
+  }
+  .wipe-link:hover,
+  .wipe-link:focus-visible { background-size: 100% 1px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+@layer components {
+  /* ============================================================
+     Header. A bar at the top; pulled to a left rail once you
+     scroll, on screens wide enough to spare the margin.
+     ============================================================ */
+  .site-nav {
+    background: var(--paper);
+    border-color: var(--rule);
+    transition:
+      background-color 0.5s var(--ease),
+      border-color 0.5s var(--ease),
+      padding 0.5s var(--ease);
+  }
+  [data-ground="paper"] .site-nav { background: var(--paper-deep); }
+  .site-nav.is-rail,
+  [data-ground="paper"] .site-nav.is-rail {
+    background: transparent;
+    border-color: transparent;
+  }
+}
+
+/* ============================================================
+   Boot sequence. A PlayStation 1 start-up, with his name where
+   the licence line went and his initials where the mark went.
+   ============================================================ */
+@keyframes boot-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes cat-leg-a {
+  0%, 100% { transform: rotate(26deg); }
+  50%      { transform: rotate(-26deg); }
+}
+@keyframes cat-leg-b {
+  0%, 100% { transform: rotate(-26deg); }
+  50%      { transform: rotate(26deg); }
+}
+@keyframes cat-bob {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-1.5px); }
+}
+@keyframes cat-tail {
+  0%, 100% { transform: rotate(-7deg); }
+  50%      { transform: rotate(7deg); }
+}
+
+.cat-leg { transform-box: fill-box; transform-origin: top center; }
+.cat-leg-a { animation: cat-leg-a 0.26s linear infinite; }
+.cat-leg-b { animation: cat-leg-b 0.26s linear infinite; }
+.cat-body { transform-box: fill-box; animation: cat-bob 0.26s linear infinite; }
+.cat-tail {
+  transform-box: fill-box;
+  transform-origin: right center;
+  animation: cat-tail 0.52s ease-in-out infinite;
+}
+
+/* The black is a curtain the cat drags off to the right: it walks along the
+   panel's own left edge, so the page appears behind it as it goes. */
+@keyframes boot-sweep {
+  from { transform: translateX(0); }
+  /* past 100%, so the cat — which walks a body-length ahead of the edge —
+     carries on off the screen instead of stopping against it */
+  to   { transform: translateX(136%); }
+}
+.boot-sweep { animation: boot-sweep 2.2s linear both; }
+.boot-mark { animation: boot-fade 0.45s ease-out both; }
